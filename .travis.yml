@@ -5,7 +5,8 @@ language: go
 go:
   - 1.11
   - 1.12
-  - tip
+  # go get for the tools is failing on tip. Diabling for now. (2019-06-16).
+  # - tip
 
 before_install:
   - go get -t -v ./...
