@@ -2,6 +2,8 @@
 
 Use braille pixelation to render images in the termincal.
 
+[![GitHub release](https://img.shields.io/github/release/creack/bug/all.svg?maxAge=2592000)]() [![GoDoc](https://godoc.org/github.com/creack/bug?status.svg)](https://godoc.org/github.com/creack/bug) [![Build Status](https://travis-ci.org/creack/bug.svg)](https://travis-ci.org/creack/bug) [![Coverage Status](https://coveralls.io/repos/github/creack/bug/badge.svg?branch=master)](https://coveralls.io/github/creack/bug?branch=master)
+
 ## Features
 
 0 dependencies: everything in `bug` is only useing the stdlib, including the tests.
@@ -24,7 +26,7 @@ While `bug` will work with any image, it will render best with black and white i
 
 https://en.wikipedia.org/wiki/Braille_Patterns#Block
 
-## Examples
+## Rendered Examples
 
 From [Golang's website](https://golang.org/doc/gopher/) under [Creative Commons Attribution 3.0 License](Creative Commons Attribution 3.0 License).
 
