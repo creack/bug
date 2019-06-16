@@ -5,21 +5,40 @@ import (
 	"errors"
 	"image"
 	"image/color"
-	"image/draw"
 	"io"
 	"io/ioutil"
 	"unicode/utf8"
 )
 
 func init() {
-	var _ draw.Drawer
-	image.RegisterFormat("bug", "", Decode, DecodeConfig)
+	image.RegisterFormat("bug", string(rune(brailleCharOffset)), Decode, DecodeConfig)
+	image.RegisterFormat("bug", string(rune(0x283f)), Decode, DecodeConfig)
 }
 
 // Decode creates a new BUG image from the given stream.
 func Decode(r io.Reader) (image.Image, error) {
+	return NewDecoder(r).Decode()
+}
+
+// Decoder handles the BUG decoding.
+type Decoder struct {
+	r io.Reader
+
+	Threshold
+}
+
+func NewDecoder(r io.Reader) *Decoder {
+	return &Decoder{r: r, Threshold: DefaultThreshold}
+}
+
+func (d *Decoder) WithThreshold(t Threshold) *Decoder {
+	d.Threshold = t
+	return d
+}
+
+func (d *Decoder) Decode() (image.Image, error) {
 	// Consume the stream.
-	buf, err := ioutil.ReadAll(r)
+	buf, err := ioutil.ReadAll(d.r)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +60,20 @@ func Decode(r io.Reader) (image.Image, error) {
 			Y: height * 4, // 4 rows per cell.
 		},
 	})
+	img.Threshold = d.Threshold
+
+	if len(rows) > len(img.content) {
+		return nil, errors.New("invalid BUG image: corrupted column")
+	}
 
 	// Row by row.
 	for row, line := range rows {
+		cells := bytes.Runes(line)
+		if len(cells) > len(img.content[row]) {
+			return nil, errors.New("invalid BUG image: corrupted row")
+		}
 		// For each cell.
-		for col, cell := range bytes.Runes(line) {
+		for col, cell := range cells {
 			// Remove the braillCharOffset to get the actual value.
 			cellVal := uint8(cell - brailleCharOffset)
 

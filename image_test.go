@@ -11,7 +11,7 @@ import (
 	// break anything there.
 	_ "image/gif"
 	_ "image/jpeg"
-	_ "image/png"
+	"image/png"
 )
 
 // Make sure *Gray implements the image.Image interface.
@@ -28,6 +28,56 @@ func TestDecodeEncode(t *testing.T) {
 
 		// Re encode the .bug file and assert it with original.
 		actual := bytes.NewBuffer(nil)
+		requireNoError(t, Encode(actual, img), "Encode decoded image %q.", name)
+		assertEqual(t, expect, actual, "Unexpected re-encoded image.")
+	}
+	t.Run("appenginegopher", func(t *testing.T) { decodeEncode(t, "appenginegopher") })
+	t.Run("biplane", func(t *testing.T) { decodeEncode(t, "biplane") })
+}
+
+// Test decoding .bug file and re-encoding it.
+func TestDecodeEncodePNGDecodeEncode(t *testing.T) {
+	decodeEncode := func(t *testing.T, name string) {
+		// Final expectation.
+		expect := mustGetFile(t, "testdata/"+name+".bug")
+		// Load the .png file and decode it.
+		img, _, err := image.Decode(mustGetFile(t, "testdata/"+name+".png"))
+		requireNoError(t, err, "Decode testdata image %q.", name)
+
+		// Encode the to .png.
+		pngBuf := bytes.NewBuffer(nil)
+		requireNoError(t, png.Encode(pngBuf, img), "Encode decoded image to png %q.", name)
+
+		// Decode .png and convert to .bug.
+		pngImg, _, err := image.Decode(pngBuf)
+		requireNoError(t, err, "Decode testdata image %q.", name)
+
+		// Convert to .bug.
+		converted := Convert(pngImg, DefaultThreshold)
+		// Encode the converted image in a buffer and assert.
+		actual := bytes.NewBuffer(nil)
+		requireNoError(t, Encode(actual, converted), "Encode converted image %q.", name)
+		assertEqual(t, expect, actual, "Unexpected converted image.")
+
+	}
+	t.Run("appenginegopher", func(t *testing.T) { decodeEncode(t, "appenginegopher") })
+	t.Run("biplane", func(t *testing.T) { decodeEncode(t, "biplane") })
+}
+
+// Test decoding .png file and converting it in inverse mode.
+func TestDecodeEncodeInverse(t *testing.T) {
+	decodeEncode := func(t *testing.T, name string) {
+		// Final expectation.
+		expect := mustGetFile(t, "testdata/"+name+".inverse.bug")
+		// Load the .png file and decode it.
+		img, _, err := image.Decode(mustGetFile(t, "testdata/"+name+".png"))
+		requireNoError(t, err, "Decode testdata image %q.", name)
+
+		// Conver to .bug in inverse mode.
+		img = Convert(img, DefaultThreshold.Inverse())
+
+		// Re encode the .bug file and assert it with original.
+		actual := bytes.NewBuffer(nil)
 		requireNoError(t, Encode(actual, img), "Encode converted image %q.", name)
 		assertEqual(t, expect, actual, "Unexpected converted image.")
 	}
@@ -36,7 +86,7 @@ func TestDecodeEncode(t *testing.T) {
 }
 
 // Test convert from .png to .bug.
-func TestConvert(t *testing.T) {
+func TestPNGConvert(t *testing.T) {
 	convertImage := func(t *testing.T, name string) {
 		// Final expectation.
 		expect := mustGetFile(t, "testdata/"+name+".bug")
@@ -44,7 +94,7 @@ func TestConvert(t *testing.T) {
 		img, _, err := image.Decode(mustGetFile(t, "testdata/"+name+".png"))
 		requireNoError(t, err, "Decode testdata image %q.", name)
 		// Convert to .bug.
-		converted := Convert(img)
+		converted := Convert(img, DefaultThreshold)
 		// Encode the converted image in a buffer and assert.
 		actual := bytes.NewBuffer(nil)
 		requireNoError(t, Encode(actual, converted), "Encode converted image %q.", name)

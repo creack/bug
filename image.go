@@ -31,6 +31,37 @@ func unicodeOffset(x, y int) uint8 {
 // Braille chars start at 0x2800 (empty cell).
 const brailleCharOffset rune = 0x2800
 
+// Threshold to use in order to set a braille point in a cell.
+// Negative value indivate inverse.
+type Threshold int
+
+const DefaultThreshold Threshold = 100
+
+// Convert the given color to Opaque/Transparent.
+func (cm Threshold) Convert(c color.Color) color.Color {
+	switch c {
+	case color.Opaque, color.White:
+		c = color.Opaque
+	case color.Transparent, color.Black:
+		c = color.Transparent
+	default:
+		if color.GrayModel.Convert(c).(color.Gray).Y < uint8(cm) {
+			c = color.Opaque
+		} else {
+			c = color.Transparent
+		}
+	}
+	if cm >= 0 {
+		return c
+	}
+	return color.Alpha16{A: ^c.(color.Alpha16).A}
+}
+
+// Inverse toggles the inverse mode for te threshold.
+func (cm Threshold) Inverse() Threshold {
+	return -cm
+}
+
 // Gray wraps a gray scale image with braille characters.
 // Each braille character represents 2x4 actual pixels.
 type Gray struct {
@@ -44,6 +75,9 @@ type Gray struct {
 
 	// Rect is the image's bounds, in cells.
 	Rect image.Rectangle
+
+	// Threshold to toogle braille point based on gray scale.
+	Threshold Threshold
 }
 
 // NewGray creates a new Black and White Braille Unicode Graphic (BUG) image.
@@ -65,6 +99,7 @@ func NewGray(r image.Rectangle) *Gray {
 				Y: height, // 4 rows per cell.
 			},
 		},
+		Threshold: DefaultThreshold,
 	}
 	img.content = make([][]uint8, img.Rect.Dy())
 	for i := range img.content {
@@ -106,15 +141,21 @@ func (p *Gray) Set(x, y int, c color.Color) {
 		return
 	}
 	p.Gray.Set(x, y, c)
+	p.SetBraille(x, y, p.ColorModel().Convert(c))
+}
 
-	p.SetBraille(x, y, c)
+// ColorModel implements the image.Image interface. It defines the
+// grayscale threshold when to set the braille character point.
+func (p *Gray) ColorModel() color.Model {
+	return p.Threshold
 }
 
 // SetBraille updates the cell with the given "real" pixel x,y.
 func (p *Gray) SetBraille(x, y int, c color.Color) {
 	col, row := x/2, y/4
 
-	if p.Gray.ColorModel().Convert(c).(color.Gray).Y != 255 {
+	// If opaque, set the point, otherwise, remove it.
+	if c == color.Opaque {
 		p.content[row][col] |= unicodeOffset(x, y)
 	} else {
 		p.content[row][col] &^= unicodeOffset(x, y)
