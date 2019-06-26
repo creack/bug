@@ -28,7 +28,7 @@ func main() {
 	}
 	img, format, err := image.Decode(bytes.NewBuffer(buf))
 	if err != nil {
-		log.Fatalf("Error decoding file contents: %s", err)
+		log.Fatalf("Error decoding image file contents: %s", err)
 	}
 	if *verbose {
 		log.Printf("Successfully decoded %q as %s", *imageFile, format)
