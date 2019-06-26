@@ -18,7 +18,7 @@ func main() {
 	var (
 		verbose    = flag.Bool("v", false, "verbose mode")
 		imageFile  = flag.String("img", "image.png", "path to image file")
-		outputFile = flag.String("out", "", "path to output file")
+		outputFile = flag.String("out", "", "path to output file (default stdout)")
 	)
 	flag.Parse()
 

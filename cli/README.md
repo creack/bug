@@ -1,5 +1,5 @@
 # Bug CLI
 
-## How to Build
+Run `make build` to build the cli as a `bugcli` binary.
 
-`make build`
+Install to `$GOPATH/bin` using `make install`.
