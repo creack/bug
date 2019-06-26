@@ -9,8 +9,6 @@ import (
 	"github.com/creack/bug"
 	// Import the common image formats to make sure we don't
 	// break anything there.
-	_ "image/gif"
-	_ "image/jpeg"
 	_ "image/png"
 )
 
