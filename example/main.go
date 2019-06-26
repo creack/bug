@@ -17,29 +17,30 @@ import (
 // Make sure *Gray implements the image.Image interface.
 var _ image.Image = (*bug.Gray)(nil)
 
+// Load a bug file, decode, and then encode it.
 func decodeEncodeBug(name string) {
 	// Load the .bug file and decode it.
-	img, _, err := image.Decode(mustGetFile("testdata/" + name + ".bug"))
+	img, _, err := image.Decode(mustGetFile("../testdata/" + name + ".bug"))
 	if err != nil {
 		log.Fatalf("Error decoding testdata image %q.", name)
 	}
-	// Re encode the .bug file and assert it with original.
+	// Re encode the .bug file.
 	actual := bytes.NewBuffer(nil)
 	if err := bug.Encode(actual, img); err != nil {
 		log.Fatalf("Error encoding to bug: %s", err)
 	}
 }
 
-// Convert a PNG to bug.
+// Convert PNG to bug.
 func convertPNG(name string) {
 	// Load png file and decode it.
-	img, _, err := image.Decode(mustGetFile("testdata/" + name + ".png"))
+	img, _, err := image.Decode(mustGetFile("../testdata/" + name + ".png"))
 	if err != nil {
 		log.Fatalf("Error decoding image: %s", err)
 	}
 	// Convert to .bug.
 	converted := bug.Convert(img, bug.DefaultThreshold)
-	// Encode the converted image in a buffer and assert.
+	// Encode the converted image in a buffer.
 	actual := bytes.NewBuffer(nil)
 	bug.Encode(actual, converted)
 }
