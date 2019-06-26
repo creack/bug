@@ -1,7 +1,13 @@
 all: build
 
+DIST ?= "dist"
+
+clean:
+	rm -rf ${DIST}
+
 build:
-	go build -o bugcli .
+	mkdir -p ${DIST}
+	go build -o ${DIST}/bugcli .
 
 install: build
-	mv ./bugcli ${GOPATH}/bin/
+	mv ${DIST}/bugcli ${GOPATH}/bin/
