@@ -12,9 +12,6 @@ import (
 	_ "image/png"
 )
 
-// Make sure *Gray implements the image.Image interface.
-var _ image.Image = (*bug.Gray)(nil)
-
 // Load a bug file, decode, and then encode it.
 func decodeEncodeBug(name string) {
 	// Load the .bug file and decode it.
