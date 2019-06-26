@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 
+	_ "image/jpeg"
 	_ "image/png"
 
 	"github.com/creack/bug"
@@ -17,7 +18,7 @@ import (
 func main() {
 	var (
 		verbose    = flag.Bool("v", false, "verbose mode")
-		imageFile  = flag.String("img", "image.png", "path to image file")
+		imageFile  = flag.String("img", "image.png", "path to image file (png and jpeg supported)")
 		outputFile = flag.String("out", "", "path to output file (default stdout)")
 	)
 	flag.Parse()
