@@ -6,7 +6,7 @@ Use braille pixelation to render images in the termincal.
 
 ## Features
 
-0 dependencies: everything in `bug` is only useing the stdlib, including the tests.
+0 dependencies: everything in `bug` is only using the stdlib, including the tests.
 
 Importing `bug` will register the format on the `image` stdlib package, allowing for the use of `image.Decode`.
 
