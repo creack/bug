@@ -18,7 +18,7 @@ The expected file type when storing images on disk is `.bug`.
 
 ### Magic number
 
-To be recognized as a `bug` foramt by the stdlib, to avoid overridding the other format,
+To be recognized as a `bug` format by the stdlib, to avoid overridding the other format,
 the magic number is set to `⠀` (empty braille cell, unicode 0x283F) or `⣿` (full braille cell, unicode 0x2880).
 This means if your image doesn't start with those, stdlib's `image.Decode` will not work. Calling directly
 the lib's `bug.Decode` will still work as expected.
