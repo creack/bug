@@ -14,8 +14,8 @@ import (
 )
 
 // initFlags parses the cli input flags and validates them.
-func initFlags() (verbose bool, inputPath, outputPath string) {
-	flag.BoolVar(&verbose, "v", false, "verbose mode")
+func initFlags() (threshold int, inputPath, outputPath string) {
+	flag.IntVar(&threshold, "t", 100, "Threshold for conversion. Set to negative for inverse output.")
 	flag.StringVar(&inputPath, "in", "", "Path to the input image. Supports jpg/png.")
 	flag.StringVar(&outputPath, "out", "", "Target BUG file path. If missing, prints to stdout.")
 
@@ -27,12 +27,12 @@ func initFlags() (verbose bool, inputPath, outputPath string) {
 		os.Exit(1)
 	}
 
-	return verbose, inputPath, outputPath
+	return threshold, inputPath, outputPath
 }
 
 func main() {
 	// Init the flags.
-	verbose, inputPath, outputPath := initFlags()
+	threshold, inputPath, outputPath := initFlags()
 
 	// Load the input image.
 	in, err := os.Open(inputPath)
@@ -40,16 +40,13 @@ func main() {
 		log.Fatalf("Error opening the input file %q: %s.", inputPath, err)
 	}
 	// Decode it in memory.
-	imgIn, format, err := image.Decode(in)
+	imgIn, _, err := image.Decode(in)
 	if err != nil {
 		log.Fatalf("Error decoding image file contents: %s.", err)
 	}
-	if verbose {
-		log.Printf("Successfully decoded %q as %s.", inputPath, format)
-	}
 
 	// Convert the image
-	imgOut := bug.Convert(imgIn, bug.DefaultThreshold.Inverse())
+	imgOut := bug.Convert(imgIn, bug.Threshold(threshold))
 
 	// Create the target file if needed.
 	var out io.WriteCloser
