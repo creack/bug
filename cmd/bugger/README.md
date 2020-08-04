@@ -1,5 +1,13 @@
-# Bug CLI
+# Braille Unicode Graphic Utility CLI
 
-Run `make build` to build the cli as a `bugcli` binary.
+Bugger is a tool to convert images to the `bug` format.
 
-Install to `$GOPATH/bin` using `make install`.
+## Installation
+
+```sh
+go get github.com/creack/bug/cmd/bugger
+```
+
+## Usage
+
+See `bugger --help`.

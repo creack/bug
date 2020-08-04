@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"flag"
 	"image"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -15,37 +13,57 @@ import (
 	"github.com/creack/bug"
 )
 
-func main() {
-	var (
-		verbose    = flag.Bool("v", false, "verbose mode")
-		imageFile  = flag.String("img", "image.png", "path to image file (png and jpeg supported)")
-		outputFile = flag.String("out", "", "path to output file (default stdout)")
-	)
+// initFlags parses the cli input flags and validates them.
+func initFlags() (verbose bool, inputPath, outputPath string) {
+	flag.BoolVar(&verbose, "v", false, "verbose mode")
+	flag.StringVar(&inputPath, "in", "", "Path to the input image. Supports jpg/png.")
+	flag.StringVar(&outputPath, "out", "", "Target BUG file path. If missing, prints to stdout.")
+
 	flag.Parse()
 
-	buf, err := ioutil.ReadFile(*imageFile)
-	if err != nil {
-		log.Fatalf("Error reading image file %q: %s", *imageFile, err)
-	}
-	img, format, err := image.Decode(bytes.NewBuffer(buf))
-	if err != nil {
-		log.Fatalf("Error decoding image file contents: %s", err)
-	}
-	if *verbose {
-		log.Printf("Successfully decoded %q as %s", *imageFile, format)
+	if inputPath == "" {
+		log.Printf("Missing -in.")
+		flag.Usage()
+		os.Exit(1)
 	}
 
-	var out bytes.Buffer
-	if err := bug.Encode(&out, img); err != nil {
-		log.Fatalf("Error encoding image as bug: %s", err)
+	return verbose, inputPath, outputPath
+}
+
+func main() {
+	// Init the flags.
+	verbose, inputPath, outputPath := initFlags()
+
+	// Load the input image.
+	in, err := os.Open(inputPath)
+	if err != nil {
+		log.Fatalf("Error opening the input file %q: %s.", inputPath, err)
 	}
-	if *outputFile == "" {
-		f := bufio.NewWriter(os.Stdout)
-		f.Write(out.Bytes())
-		f.Flush()
-		return
+	// Decode it in memory.
+	imgIn, format, err := image.Decode(in)
+	if err != nil {
+		log.Fatalf("Error decoding image file contents: %s.", err)
 	}
-	if err := ioutil.WriteFile(*outputFile, out.Bytes(), 0644); err != nil {
-		log.Fatalf("Error writing output to %q", *outputFile)
+	if verbose {
+		log.Printf("Successfully decoded %q as %s.", inputPath, format)
+	}
+
+	// Convert the image
+	imgOut := bug.Convert(imgIn, bug.DefaultThreshold.Inverse())
+
+	// Create the target file if needed.
+	var out io.WriteCloser
+	if outputPath != "" {
+		out, err = os.Create(outputPath)
+		if err != nil {
+			log.Fatalf("Error creating the output file %q: %s.", outputPath, err)
+		}
+		defer func() { _ = out.Close() }() // Best effort.
+	} else {
+		out = os.Stdout
+	}
+
+	if err := bug.Encode(out, imgOut); err != nil {
+		log.Fatalf("Error encoding the result BUG image to the output file %q: %s.", outputPath, err)
 	}
 }
